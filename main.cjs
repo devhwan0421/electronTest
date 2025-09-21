@@ -32,14 +32,19 @@ function createWindow() {
   });
 
   if (isDev) {
-    win.loadURL(RENDERER_URL); // Vite dev 서버
+    // 개발 모드: Vite dev 서버에 붙음
+    win.loadURL(RENDERER_URL);
     win.webContents.openDevTools({ mode: 'detach' });
   } else {
-    const indexPath = path.join(process.resourcesPath, 'app', 'dist', 'index.html');
+    // 배포 모드: asar 내부의 dist/index.html을 로드
+    const indexPath = path.join(__dirname, 'dist', 'index.html');
     win.loadFile(indexPath);
   }
 
-  win.webContents.setWindowOpenHandler(({ url }) => { shell.openExternal(url); return { action: 'deny' }; });
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: 'deny' };
+  });
 }
 
 app.whenReady().then(createWindow);
