@@ -1,0 +1,61 @@
+name: Build and Release                      # 워크플로우 이름
+
+on:                                          # 트리거 설정
+  push:                                      # push 이벤트 중
+    tags:                                    # 태그에만 반응
+      - 'v*.*.*'                             # v1.0.0, v2.3.4 같은 태그 푸시 시 실행
+
+permissions:
+  contents: write                            # 릴리스 업로드 권한 (GH Release에 파일 올리려면 필요)
+
+jobs:
+  build-win:                                 # 윈도우용 빌드 잡
+    runs-on: windows-latest                  # 윈도우 러너에서 실행 (윈도우 설치파일은 윈도우에서만 빌드 가능)
+
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # electron-builder가 릴리스 업로드에 쓰는 토큰 이름 (필수)
+
+    steps:
+      - name: Checkout                       # 저장소 체크아웃
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0                     # 태그/버전 정보까지 필요하니 얕은 체크아웃 금지
+
+      - name: Show repo structure            # 디렉터리 구조 확인 로그 (문제 생기면 디버그에 도움)
+        run: |
+          echo "::group::Repo root"
+          dir
+          echo "::endgroup::"
+
+      - name: Setup Node.js                  # Node 세팅
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20                   # LTS 권장 (22는 전이슈 리스크)
+          cache: npm                         # npm 캐시 활성화
+          cache-dependency-path: package-lock.json  # 캐시 키 기준 파일
+
+      - name: Install dependencies           # 의존성 설치
+        run: npm ci                          # CI에 맞는 고정 설치
+
+      - name: Build web (Vite)               # 프론트 빌드: dist/ 생성
+        run: npm run build                   # vite build 실행 (vite.config.js 기준)
+
+      - name: Build desktop (electron-builder)   # Electron 앱 패키징
+        run: npx electron-builder --win nsis portable
+        # --win: 윈도우 타깃
+        # nsis: 설치형(.exe 인스톨러)
+        # portable: 포터블(.exe 단일 실행파일)도 함께 빌드
+        # 결과물은 기본적으로 release/ 폴더에 생성 (package.json build.directories.output에 따라 다름)
+
+      - name: Upload artifacts               # 빌드 산출물 아티팩트 업로드 (CI에서 다운로드용)
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-artifacts            # 아티팩트 표시 이름
+          path: release/**                   # 릴리스 결과물 경로(기본값이 release/인 경우)
+
+      - name: Create GitHub Release          # GitHub Release 생성 및 파일 첨부
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true                        # 초안으로 만들어 수동 공개 가능
+          files: |
+            release/**

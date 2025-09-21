@@ -1,0 +1,37 @@
+{
+  "name": "vue-project",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "main": "main.cjs",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "electron": "electron .",
+    "dev:desktop": "npm run dev & npm run electron",
+    "build:desktop": "npm run build && electron-builder"
+  },
+  "build": {
+    "appId": "com.example.vueelectron",
+    "productName": "VueElectronApp",
+    "files": ["dist/**","electron/**","package.json"],
+    "extraFiles": [{ "from": "dist", "to": "app/dist" }],
+    "directories": { "output": "release" }
+  },
+  "dependencies": {
+    "vue": "^3.5.18"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.1",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.0.0",
+    "electron": "^38.1.2",
+    "vite": "^7.0.6",
+    "vite-plugin-vue-devtools": "^8.0.0",
+    "wait-on": "^9.0.1"
+  }
+}
