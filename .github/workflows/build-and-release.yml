@@ -58,6 +58,6 @@ jobs:
         with:
           draft: true                        # 초안으로 만들어 수동 공개 가능
           files: |
-            release/**                       # release 폴더의 exe, zip 전부 첨부
+            release/**
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 액션 자체 제공 토큰 매핑
